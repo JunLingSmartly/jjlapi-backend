@@ -1,4 +1,4 @@
-package com.jjlapi.jjlapiinterface.model;
+package com.jjlapi.jjlapiclientsdk.model;
 
 /**
  * @Author: jinjunling

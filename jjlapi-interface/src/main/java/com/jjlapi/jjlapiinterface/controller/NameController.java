@@ -6,8 +6,8 @@ package com.jjlapi.jjlapiinterface.controller;
  * @Description:
  */
 
-import com.jjlapi.jjlapiinterface.model.User;
-import com.jjlapi.jjlapiinterface.utils.SignUtils;
+import com.jjlapi.jjlapiclientsdk.model.User;
+import com.jjlapi.jjlapiclientsdk.utils.SignUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;

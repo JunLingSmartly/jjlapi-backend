@@ -1,5 +1,8 @@
 server:
   port: 8123
-  #???????????? api ??
   servlet:
     context-path: /api
+jjlapi:
+  client:
+    access-key: jjlapi
+    secret-key: abcdef

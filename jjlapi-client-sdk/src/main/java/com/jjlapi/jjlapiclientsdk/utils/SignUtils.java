@@ -1,4 +1,4 @@
-package com.jjlapi.jjlapiinterface.utils;
+package com.jjlapi.jjlapiclientsdk.utils;
 
 /**
  * @Author: jinjunling
@@ -8,8 +8,6 @@ package com.jjlapi.jjlapiinterface.utils;
 
 import cn.hutool.crypto.digest.DigestAlgorithm;
 import cn.hutool.crypto.digest.Digester;
-
-import java.util.Map;
 
 /**
  * 签名工具
