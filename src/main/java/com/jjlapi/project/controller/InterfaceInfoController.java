@@ -2,10 +2,8 @@ package com.jjlapi.project.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.jjlapi.project.common.BaseResponse;
-import com.jjlapi.project.common.DeleteRequest;
-import com.jjlapi.project.common.ErrorCode;
-import com.jjlapi.project.common.ResultUtils;
+import com.jjlapi.jjlapiclientsdk.client.JjlApiClient;
+import com.jjlapi.project.common.*;
 import com.jjlapi.project.constant.CommonConstant;
 import com.jjlapi.project.exception.BusinessException;
 import com.jjlapi.project.model.dto.interfaceInfo.InterfaceInfoAddRequest;
@@ -13,6 +11,7 @@ import com.jjlapi.project.model.dto.interfaceInfo.InterfaceInfoQueryRequest;
 import com.jjlapi.project.model.dto.interfaceInfo.InterfaceInfoUpdateRequest;
 import com.jjlapi.project.model.entity.InterfaceInfo;
 import com.jjlapi.project.model.entity.User;
+import com.jjlapi.project.model.enums.InterfaceInfoStatusEnum;
 import com.jjlapi.project.service.InterfaceInfoService;
 import com.jjlapi.project.service.UserService;
 import com.jjlapi.project.annotation.AuthCheck;
@@ -26,7 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
- * 帖子接口
+ * 接口管理
  *
  * @author yupi
  */
@@ -40,6 +39,9 @@ public class InterfaceInfoController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private JjlApiClient jjlApiClient;
 
     // region 增删改查
 
@@ -195,5 +197,79 @@ public class InterfaceInfoController {
     }
 
     // endregion
+    /**
+     * 发布
+     *
+     * @param idRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/online")
+    //代表只能管理员调用
+    @AuthCheck(mustRole = "admin")
+    public BaseResponse<Boolean> onlineInterfaceInfo(@RequestBody IdRequest idRequest, HttpServletRequest request) {
+        if (idRequest == null || idRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 1.校验该接口是否存在
+        long id = idRequest.getId();
+        // 根据id查询接口信息数据
+        InterfaceInfo oldInterfaceInfo = interfaceInfoService.getById(id);
+        if (oldInterfaceInfo == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        // 2.判断该接口是否可以调用
+        // 创建一个User对象(这里先模拟一下，搞个假数据)
+        com.jjlapi.jjlapiclientsdk.model.User user = new com.jjlapi.jjlapiclientsdk.model.User();
+        // 设置user对象的username属性为"test"
+        user.setUsername("test");
+        // 通过jjlApiClient的getUsernameByPost方法传入user对象，并将返回的username赋值给username变量
+        String username = jjlApiClient.getUserNameByPost(user);
+        if (StringUtils.isBlank(username)) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "接口验证失败");
+        }
+        InterfaceInfo interfaceInfo = new InterfaceInfo();
+        interfaceInfo.setId(id);
+        // 3.修改接口数据库中的状态字段为 1
+        interfaceInfo.setStatus(InterfaceInfoStatusEnum.ONLINE.getValue());
+        boolean result = interfaceInfoService.updateById(interfaceInfo);
+        return ResultUtils.success(result);
+    }
+    /**
+     * 下线
+     *
+     * @param idRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/offline")
+    @AuthCheck(mustRole = "admin")
+    public BaseResponse<Boolean> offlineInterfaceInfo(@RequestBody IdRequest idRequest, HttpServletRequest request) {
+        if (idRequest == null || idRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 1.校验该接口是否存在
+        long id = idRequest.getId();
+        InterfaceInfo oldInterfaceInfo = interfaceInfoService.getById(id);
+        if (oldInterfaceInfo == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        // 2.判断该接口是否可以调用
+        // 创建一个User对象(这里先模拟一下，搞个假数据)
+        com.jjlapi.jjlapiclientsdk.model.User user = new com.jjlapi.jjlapiclientsdk.model.User();
+        // 设置user对象的username属性为"test"
+        user.setUsername("test");
+        // 通过jjlApiClient的getUsernameByPost方法传入user对象，并将返回的username赋值给username变量
+        String username = jjlApiClient.getUserNameByPost(user);
+        if (StringUtils.isBlank(username)) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "接口验证失败");
+        }
+        InterfaceInfo interfaceInfo = new InterfaceInfo();
+        interfaceInfo.setId(id);
+        // 3.修改接口数据库中的状态字段为 1
+        interfaceInfo.setStatus(InterfaceInfoStatusEnum.OFFLINE.getValue());
+        boolean result = interfaceInfoService.updateById(interfaceInfo);
+        return ResultUtils.success(result);
+    }
 
 }
