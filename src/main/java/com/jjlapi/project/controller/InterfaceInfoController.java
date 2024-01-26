@@ -2,11 +2,13 @@ package com.jjlapi.project.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.gson.Gson;
 import com.jjlapi.jjlapiclientsdk.client.JjlApiClient;
 import com.jjlapi.project.common.*;
 import com.jjlapi.project.constant.CommonConstant;
 import com.jjlapi.project.exception.BusinessException;
 import com.jjlapi.project.model.dto.interfaceInfo.InterfaceInfoAddRequest;
+import com.jjlapi.project.model.dto.interfaceInfo.InterfaceInfoInvokeRequest;
 import com.jjlapi.project.model.dto.interfaceInfo.InterfaceInfoQueryRequest;
 import com.jjlapi.project.model.dto.interfaceInfo.InterfaceInfoUpdateRequest;
 import com.jjlapi.project.model.entity.InterfaceInfo;
@@ -270,6 +272,43 @@ public class InterfaceInfoController {
         interfaceInfo.setStatus(InterfaceInfoStatusEnum.OFFLINE.getValue());
         boolean result = interfaceInfoService.updateById(interfaceInfo);
         return ResultUtils.success(result);
+    }
+
+    /**
+     * 测试调用
+     *
+     * @param interfaceInfoInvokeRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/invoke")
+    public BaseResponse<Object> invokeInterfaceInfo(@RequestBody InterfaceInfoInvokeRequest interfaceInfoInvokeRequest,
+                                                    HttpServletRequest request) {
+        if (interfaceInfoInvokeRequest == null || interfaceInfoInvokeRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        long id = interfaceInfoInvokeRequest.getId();
+        String userRequestParams = interfaceInfoInvokeRequest.getUserRequestParams();
+        InterfaceInfo oldInterfaceInfo = interfaceInfoService.getById(id);
+        if (oldInterfaceInfo == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        if (oldInterfaceInfo.getStatus() == InterfaceInfoStatusEnum.OFFLINE.getValue()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "接口已关闭");
+        }
+        // 获取当前登录用户的ak和sk，这样相当于用户自己的这个身份去调用，
+        // 也不会担心它刷接口，因为知道是谁刷了这个接口，会比较安全
+        User loginUser = userService.getLoginUser(request);
+        String accessKey = loginUser.getAccessKey();
+        String secretKey = loginUser.getSecretKey();
+        JjlApiClient jjlApiClient = new JjlApiClient(accessKey,secretKey);
+        // 我们只需要进行测试调用，所以我们需要解析传递过来的参数。
+        Gson gson = new Gson();
+        // 将用户请求参数转换为com.jjlapi.yuapiclientsdk.model.User对象
+        com.jjlapi.jjlapiclientsdk.model.User user = gson.fromJson(userRequestParams, com.jjlapi.jjlapiclientsdk.model.User.class);
+        // 调用JjlApiClient的getUsernameByPost方法，传入用户对象，获取用户名
+        String usernameByPost = jjlApiClient.getUserNameByPost(user);
+        return ResultUtils.success(usernameByPost);
     }
 
 }
