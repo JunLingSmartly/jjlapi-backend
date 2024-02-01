@@ -1,0 +1,20 @@
+server:
+  port: 8090
+spring:
+  cloud:
+    gateway:
+      default-filters:
+        - AddResponseHeader=source, jjl
+      routes:
+        # \u5B9A\u4E49\u4E86\u4E00\u4E2A\u540D\u4E3A"api_route"\u7684\u8DEF\u7531\u89C4\u5219,\u8BE5\u89C4\u5219\u5C06\u5339\u914D\u4EE5"/api/"\u5F00\u5934\u7684\u8DEF\u5F84,\u4F8B\u5982"/api/user",
+        # \u5E76\u5C06\u8FD9\u4E9B\u8BF7\u6C42\u8F6C\u53D1\u5230"http://localhost:8123"\u8FD9\u4E2A\u76EE\u6807\u5730\u5740
+        - id: api_route
+          uri: http://localhost:8123
+          predicates:
+            - Path=/api/**
+logging:
+  level:
+    org:
+      springframework:
+        cloud:
+          gateway: trace
