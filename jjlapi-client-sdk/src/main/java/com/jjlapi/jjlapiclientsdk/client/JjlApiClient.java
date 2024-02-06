@@ -18,6 +18,8 @@ import static com.jjlapi.jjlapiclientsdk.utils.SignUtils.genSign;
  */
 public class JjlApiClient {
 
+    private static final String GATEWAY_HOST = "http://localhost:8090";
+
     private String accessKey;
 
     private String secretKey;
@@ -34,7 +36,7 @@ public class JjlApiClient {
         // 将"name"参数添加到映射中
         paramMap.put("name", name);
         // 使用HttpUtil工具发起GET请求，并获取服务器返回的结果
-        String result= HttpUtil.get("http://localhost:8123/api/name/", paramMap);
+        String result= HttpUtil.get(GATEWAY_HOST + "/api/name/", paramMap);
         // 打印服务器返回的结果
         System.out.println(result);
         // 返回服务器返回的结果
@@ -47,7 +49,7 @@ public class JjlApiClient {
         HashMap<String, Object> paramMap = new HashMap<>();
         paramMap.put("name", name);
         // 使用HttpUtil工具发起POST请求，并获取服务器返回的结果
-        String result= HttpUtil.post("http://localhost:8123/api/name/", paramMap);
+        String result= HttpUtil.post(GATEWAY_HOST + "/api/name/", paramMap);
         System.out.println(result);
         return result;
     }
@@ -57,7 +59,7 @@ public class JjlApiClient {
         // 将User对象转换为JSON字符串
         String json = JSONUtil.toJsonStr(user);
         // 使用HttpRequest工具发起POST请求，并获取服务器的响应
-        HttpResponse httpResponse = HttpRequest.post("http://localhost:8123/api/name/getUserName")
+        HttpResponse httpResponse = HttpRequest.post(GATEWAY_HOST + "/api/name/getUserName")
                 // 添加前面构造的请求头
                 .addHeaders(getHeaderMap(json))
                 .body(json) // 将JSON字符串设置为请求体
