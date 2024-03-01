@@ -2,9 +2,9 @@ package com.jjlapi.project.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.jjlapi.jjlapicommon.model.entity.UserInterfaceInfo;
 import com.jjlapi.project.common.ErrorCode;
 import com.jjlapi.project.exception.BusinessException;
-import com.jjlapi.project.model.entity.UserInterfaceInfo;
 import com.jjlapi.project.mapper.UserInterfaceInfoMapper;
 import com.jjlapi.project.service.UserInterfaceInfoService;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,6 +1,6 @@
 package com.jjlapi.project.service;
 
-import com.jjlapi.project.model.entity.User;
+import com.jjlapi.jjlapicommon.model.entity.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

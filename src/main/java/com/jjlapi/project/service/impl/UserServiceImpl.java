@@ -8,7 +8,7 @@ import com.jjlapi.project.common.ErrorCode;
 import com.jjlapi.project.constant.UserConstant;
 import com.jjlapi.project.exception.BusinessException;
 import com.jjlapi.project.mapper.UserMapper;
-import com.jjlapi.project.model.entity.User;
+import com.jjlapi.jjlapicommon.model.entity.User;
 import com.jjlapi.project.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

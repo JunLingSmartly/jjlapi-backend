@@ -1,7 +1,7 @@
 package com.jjlapi.project.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.jjlapi.project.model.entity.InterfaceInfo;
+import com.jjlapi.jjlapicommon.model.entity.InterfaceInfo;
 
 /**
 * @author jinjl

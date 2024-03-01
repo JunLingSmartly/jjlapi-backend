@@ -9,7 +9,7 @@ import com.jjlapi.project.common.ErrorCode;
 import com.jjlapi.project.common.ResultUtils;
 import com.jjlapi.project.exception.BusinessException;
 import com.jjlapi.project.model.dto.user.*;
-import com.jjlapi.project.model.entity.User;
+import com.jjlapi.jjlapicommon.model.entity.User;
 import com.jjlapi.project.model.vo.UserVO;
 import com.jjlapi.project.service.UserService;
 import com.jjlapi.project.model.dto.user.*;

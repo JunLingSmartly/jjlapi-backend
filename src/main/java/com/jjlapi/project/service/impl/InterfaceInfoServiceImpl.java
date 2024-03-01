@@ -3,7 +3,7 @@ package com.jjlapi.project.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.jjlapi.project.common.ErrorCode;
 import com.jjlapi.project.exception.BusinessException;
-import com.jjlapi.project.model.entity.InterfaceInfo;
+import com.jjlapi.jjlapicommon.model.entity.InterfaceInfo;
 import com.jjlapi.project.service.InterfaceInfoService;
 import com.jjlapi.project.mapper.InterfaceInfoMapper;
 import org.apache.commons.lang3.StringUtils;

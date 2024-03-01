@@ -12,7 +12,7 @@ import com.jjlapi.project.model.dto.post.PostAddRequest;
 import com.jjlapi.project.model.dto.post.PostQueryRequest;
 import com.jjlapi.project.model.dto.post.PostUpdateRequest;
 import com.jjlapi.project.model.entity.Post;
-import com.jjlapi.project.model.entity.User;
+import com.jjlapi.jjlapicommon.model.entity.User;
 import com.jjlapi.project.service.PostService;
 import com.jjlapi.project.service.UserService;
 import com.jjlapi.project.annotation.AuthCheck;

@@ -2,7 +2,7 @@ package com.jjlapi.project.aop;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.jjlapi.project.common.ErrorCode;
-import com.jjlapi.project.model.entity.User;
+import com.jjlapi.jjlapicommon.model.entity.User;
 import com.jjlapi.project.annotation.AuthCheck;
 import com.jjlapi.project.exception.BusinessException;
 import com.jjlapi.project.service.UserService;

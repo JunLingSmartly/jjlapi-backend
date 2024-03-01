@@ -1,4 +1,4 @@
-package com.jjlapi.project.service;
+package com.jjlapi.jjlapicommon.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.jjlapi.jjlapicommon.model.entity.InterfaceInfo;
@@ -8,14 +8,11 @@ import com.jjlapi.jjlapicommon.model.entity.InterfaceInfo;
 * @description 针对表【interface_info(接口信息)】的数据库操作Service
 * @createDate 2024-01-05 11:55:08
 */
-public interface InterfaceInfoService extends IService<InterfaceInfo> {
+public interface InnerInterfaceInfoService{
 
     /**
-     * 校验
-     *
-     * @param interfaceInfo
-     * @param add 是否为创建校验
+     * 从数据库中查询模拟接口是否存在（请求路径，请求方法，请求参数）
      */
-    void validInterfaceInfo(InterfaceInfo interfaceInfo, boolean add);
+    InterfaceInfo getInterfaceInfo(String path,String method);
 
 }
