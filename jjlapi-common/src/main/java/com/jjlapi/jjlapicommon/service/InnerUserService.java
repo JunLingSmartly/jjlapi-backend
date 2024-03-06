@@ -7,7 +7,7 @@ import com.jjlapi.jjlapicommon.model.entity.User;
 /**
  * 用户服务
  *
- * @author yupi
+ * @author jjlpi
  */
 public interface InnerUserService {
 

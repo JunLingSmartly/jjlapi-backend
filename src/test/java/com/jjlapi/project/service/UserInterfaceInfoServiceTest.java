@@ -1,7 +1,7 @@
 package com.jjlapi.project.service;
 
 import org.junit.jupiter.api.Assertions;
-// 自动生成的包不对，要改成这个
+// 鑷姩鐢熸垚鐨勫寘涓嶅锛岃鏀规垚杩欎釜
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -20,9 +20,9 @@ public class UserInterfaceInfoServiceTest {
 
     @Test
     public void invokeCount() {
-        // 调用了userInterfaceInfoService的invokeCount方法，并传入两个参数(1L, 1L)
+        // 璋冪敤浜唘serInterfaceInfoService鐨刬nvokeCount鏂规硶锛屽苟浼犲叆涓や釜鍙傛暟(1L, 1L)
         boolean b = userInterfaceInfoService.invokeCount(1L, 1L);
-        // 表示断言b的值为true，即测试用例期望invokeCount方法返回true
+        // 琛ㄧず鏂█b鐨勫�间负true锛屽嵆娴嬭瘯鐢ㄤ緥鏈熸湜invokeCount鏂规硶杩斿洖true
         Assertions.assertTrue(b);
     }
 }

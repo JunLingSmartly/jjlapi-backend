@@ -310,5 +310,4 @@ public class InterfaceInfoController {
         String usernameByPost = jjlApiClient.getUserNameByPost(user);
         return ResultUtils.success(usernameByPost);
     }
-
 }

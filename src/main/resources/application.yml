@@ -47,4 +47,4 @@ dubbo:
   registry:
     # 配置注册中心为 Nacos，使用的地址是 nacos://localhost:8848
     id: nacos-registry
-    address: nacos://localhost:8848
+    address: nacos://localhost:8848?username=nacos&password=nacos
