@@ -1,7 +1,13 @@
-package com.jjl.jjlapigateway;
+package com.jjlapi.jjlapigateway;
 
 import com.jjlapi.jjlapiclientsdk.utils.SignUtils;
+import com.jjlapi.jjlapicommon.model.entity.InterfaceInfo;
+import com.jjlapi.jjlapicommon.model.entity.User;
+import com.jjlapi.jjlapicommon.service.InnerInterfaceInfoService;
+import com.jjlapi.jjlapicommon.service.InnerUserInterfaceInfoService;
+import com.jjlapi.jjlapicommon.service.InnerUserService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.reactivestreams.Publisher;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -30,16 +36,28 @@ import java.util.List;
 @Slf4j
 @Component
 public class CustomGlobalFilter implements GlobalFilter, Ordered {
+
+    @DubboReference
+    private InnerUserService innerUserService;
+    @DubboReference
+    private InnerInterfaceInfoService innerInterfaceInfoService;
+    @DubboReference
+    private InnerUserInterfaceInfoService innerUserInterfaceInfoService;
     private static final List<String> IP_WHITE_LIST = Arrays.asList("127.0.0.1");
+    //接口链接，应该从数据库中的接口表中的链接获取，这里暂时节省。
+    // todo 从数据库中获取
+    private static final String INTERFACE_HOST = "http://localhost:8123";
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         // 1．用户发送请求到AP工网关
         // 2．请求日志
         ServerHttpRequest request = exchange.getRequest();
+        String path = INTERFACE_HOST + request.getPath().value();
+        String method = request.getMethod().toString();
         log.info("请求唯一标识，" +request.getId());
-        log.info("请求路径:" + request.getPath().value( ));
-        log.info("请求方法:" + request.getMethod() );
+        log.info("请求路径:" + path);
+        log.info("请求方法:" + method);
         log.info("请求参数;" + request.getQueryParams());
         String sourceAddress = request.getLocalAddress().getHostString();
         log.info("请求来源地址:" + sourceAddress);
@@ -63,15 +81,25 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
         String timestamp = headers.getFirst("timestamp");
         String sign = headers.getFirst("sign");
         String body = headers.getFirst("body");
-        // todo 实际情况应该是去数据库中查是否已分配给用户
-        if (!accessKey.equals("jjlapi")){
+        // todo 实际情况应该是去数据库中查是否已分配给用户(已完善)
+        User invokeUser = null;
+        try{
+            invokeUser = innerUserService.getInvokeUser(accessKey);
+        }catch (Exception e){
+            log.error("getInvokeUser error",e);
+        }
+            if(invokeUser == null){
+            //如果用户信息为空，处理未授权情况并返回响应
             return handleNoAuth(response);
         }
+//        if (!accessKey.equals("jjlapi")){
+//            return handleNoAuth(response);
+//        }
         // 直接校验如果随机数大于1万，则抛出异常，并提示"无权限"
         if (Long.parseLong(nonce) > 10000) {
             return handleNoAuth(response);
         }
-        // todo 时间和当前时间不能超过5分钟
+        // 时间和当前时间不能超过5分钟
         // 首先,获取当前时间的时间戳,以秒为单位
         Long currentTime = System.currentTimeMillis() / 1000;
         // 定义一个常量FIVE_MINUTES,表示五分钟的时间间隔(乘以60,将分钟转换为秒,得到五分钟的时间间隔)。
@@ -81,20 +109,30 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
             return handleNoAuth(response);
         }
 
-        // todo 实际情况中是从数据库中查出 secretKey
-        String serverSign = SignUtils.genSign(body, "abcdefg");
-        if (!sign.equals(serverSign)) {
+        // todo 实际情况中是从数据库中查出 secretKey(已完善)
+        String secretKey = invokeUser.getSecretKey();
+        String serverSign = SignUtils.genSign(body,secretKey);
+        if (sign == null || !sign.equals(serverSign)) {
             return handleNoAuth(response);
         }
 
         // 5．请求的模拟接口是否存在?
-        // todo 从数据库中查询模拟接口是否存在，以及请求方法是否匹配(还可以校验请求参数)
-
-        // 6．请求转发，调用模拟接口
-        Mono<Void> filter = chain.filter(exchange);
+        // todo 从数据库中查询模拟接口是否存在，以及请求方法是否匹配(还可以校验请求参数)(已完善)
+        InterfaceInfo interfaceInfo = null;
+        try{
+            interfaceInfo = innerInterfaceInfoService.getInterfaceInfo(path,method);
+        }catch (Exception e){
+            log.error("getInterfaceInfo error",e);
+        }
+        if(interfaceInfo == null){
+            return handleNoAuth(response);
+        }
+//        // 6．请求转发，调用模拟接口
+//        Mono<Void> filter = chain.filter(exchange);
+        //todo 是否有调用次数
 
         // 7．响应日志
-        return handleResponse(exchange,chain);
+        return handleResponse(exchange,chain,interfaceInfo.getUserId(),invokeUser.getId());
     }
 
     @Override
@@ -119,7 +157,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
      * @param chain
      * @return
      */
-    public Mono<Void> handleResponse(ServerWebExchange exchange, GatewayFilterChain chain) {
+    public Mono<Void> handleResponse(ServerWebExchange exchange, GatewayFilterChain chain,long interfaceInfoId,long userId) {
         try {
             // 获取原始的响应对象
             ServerHttpResponse originalResponse = exchange.getResponse();
@@ -128,7 +166,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
             // 获取响应的状态码
             HttpStatus statusCode = originalResponse.getStatusCode();
 
-            // 判断状态码是否为200 OK(按道理来说,现在没有调用,是拿不到响应码的,对这个保持怀疑 沉思.jpg)
+            // 判断状态码是否为200 OK(按道理来说,现在没有调用,是拿不到响应码的)
             if(statusCode == HttpStatus.OK) {
                 // 创建一个装饰后的响应对象(开始穿装备，增强能力)
                 ServerHttpResponseDecorator decoratedResponse = new ServerHttpResponseDecorator(originalResponse) {
@@ -146,6 +184,11 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
                             // (这里就理解为它在拼接字符串,它把缓冲区的数据取出来，一点一点拼接好)
                             return super.writeWith(fluxBody.map(dataBuffer -> {
                                 // 8．调用成功，接口调用次数+ 1
+                                try {
+                                    innerUserInterfaceInfoService.invokeCount(interfaceInfoId,userId);
+                                }catch (Exception e){
+                                    log.error("invokeCount error",e);
+                                }
                                 // 读取响应体的内容并转换为字节数组
                                 byte[] content = new byte[dataBuffer.readableByteCount()];
                                 dataBuffer.read(content);

@@ -1,4 +1,4 @@
-package com.jjl.jjlapigateway;
+package com.jjlapi.jjlapigateway;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

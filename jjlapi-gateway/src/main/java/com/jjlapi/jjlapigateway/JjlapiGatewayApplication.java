@@ -1,6 +1,6 @@
-package com.jjl.jjlapigateway;
+package com.jjlapi.jjlapigateway;
 
-import com.jjl.project.provider.DemoService;
+import com.jjlapi.project.provider.DemoService;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.apache.dubbo.config.spring.context.annotation.EnableDubbo;
 import org.springframework.boot.SpringApplication;
@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 		DataSourceAutoConfiguration.class,
 		DataSourceTransactionManagerAutoConfiguration.class,
 		HibernateJpaAutoConfiguration.class})
-@Service
 @EnableDubbo
+@Service
 public class JjlapiGatewayApplication {
 
 	@DubboReference
@@ -40,15 +40,15 @@ public class JjlapiGatewayApplication {
 		return demoService.sayHello2(name);
 	}
 
-	//    @Bean
-	//    public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
-	//        return builder.routes()
-	//                .route("tobaidu", r -> r.path("/baidu")
-	//                        .uri("https://www.baidu.com"))
-	//                .route("toyupiicu", r -> r.path("/yupiicu")
-	//                        .uri("http://yupi.icu"))
-	//                .build();
-	//    }
+//    @Bean
+//    public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
+//        return builder.routes()
+//                .route("tobaidu", r -> r.path("/baidu")
+//                        .uri("https://www.baidu.com"))
+//                .route("toyupiicu", r -> r.path("/yupiicu")
+//                        .uri("http://yupi.icu"))
+//                .build();
+//    }
 
 }
 
