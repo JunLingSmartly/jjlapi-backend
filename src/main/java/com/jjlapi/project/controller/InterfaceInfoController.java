@@ -222,14 +222,14 @@ public class InterfaceInfoController {
         }
         // 2.判断该接口是否可以调用
         // 创建一个User对象(这里先模拟一下，搞个假数据)
-        com.jjlapi.jjlapiclientsdk.model.User user = new com.jjlapi.jjlapiclientsdk.model.User();
-        // 设置user对象的username属性为"test"
-        user.setUsername("test");
-        // 通过jjlApiClient的getUsernameByPost方法传入user对象，并将返回的username赋值给username变量
-        String username = jjlApiClient.getUserNameByPost(user);
-        if (StringUtils.isBlank(username)) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "接口验证失败");
-        }
+//        com.jjlapi.jjlapiclientsdk.model.User user = new com.jjlapi.jjlapiclientsdk.model.User();
+//        // 设置user对象的username属性为"test"
+//        user.setUsername("test");
+//        // 通过jjlApiClient的getUsernameByPost方法传入user对象，并将返回的username赋值给username变量
+//        String username = jjlApiClient.getUserNameByPost(user);
+//        if (StringUtils.isBlank(username)) {
+//            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "接口验证失败");
+//        }
         InterfaceInfo interfaceInfo = new InterfaceInfo();
         interfaceInfo.setId(id);
         // 3.修改接口数据库中的状态字段为 1
@@ -304,7 +304,7 @@ public class InterfaceInfoController {
         JjlApiClient jjlApiClient = new JjlApiClient(accessKey,secretKey);
         // 我们只需要进行测试调用，所以我们需要解析传递过来的参数。
         Gson gson = new Gson();
-        // 将用户请求参数转换为com.jjlapi.yuapiclientsdk.model.User对象
+        // 将用户请求参数转换为com.jjlapi.jjlapiclientsdk.model.User对象
         com.jjlapi.jjlapiclientsdk.model.User user = gson.fromJson(userRequestParams, com.jjlapi.jjlapiclientsdk.model.User.class);
         // 调用JjlApiClient的getUsernameByPost方法，传入用户对象，获取用户名
         String usernameByPost = jjlApiClient.getUserNameByPost(user);
