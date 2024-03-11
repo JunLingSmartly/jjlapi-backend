@@ -1,4 +1,4 @@
-﻿package com.jjlapi.project.controller;
+package com.jjlapi.project.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.jjlapi.jjlapicommon.model.entity.InterfaceInfo;
@@ -49,7 +49,7 @@ public class AnalysisController {
     @AuthCheck(mustRole = "admin")
     public BaseResponse<List<InterfaceInfoVO>> listTopInvokeInterfaceInfo() {
         // 查询调用次数最多的接口信息列表
-        List<UserInterfaceInfo> userInterfaceInfoList = userInterfaceInfoMapper.listTopInvokeInterfaceInfo(3);
+        List<UserInterfaceInfo> userInterfaceInfoList = userInterfaceInfoMapper.listTopInvokeInterfaceInfo(7);
         // 将接口信息按照接口ID分组，便于关联查询
         Map<Long, List<UserInterfaceInfo>> interfaceInfoIdObjMap = userInterfaceInfoList.stream()
                 .collect(Collectors.groupingBy(UserInterfaceInfo::getInterfaceInfoId));
