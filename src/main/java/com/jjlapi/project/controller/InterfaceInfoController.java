@@ -3,7 +3,12 @@ package com.jjlapi.project.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import com.jjlapi.jjlapiclientsdk.client.JjlApiClient;
+import com.jjlapi.jjlapiclientsdk.model.request.CurrencyRequest;
+import com.jjlapi.jjlapiclientsdk.model.response.ResultResponse;
+import com.jjlapi.jjlapiclientsdk.service.ApiService;
 import com.jjlapi.project.common.*;
 import com.jjlapi.project.constant.CommonConstant;
 import com.jjlapi.project.exception.BusinessException;
@@ -25,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 接口管理
@@ -44,6 +50,10 @@ public class InterfaceInfoController {
 
     @Resource
     private JjlApiClient jjlApiClient;
+    @Resource
+    private ApiService apiService;
+
+    private final Gson gson = new Gson();
 
     // region 增删改查
 
@@ -256,16 +266,6 @@ public class InterfaceInfoController {
         if (oldInterfaceInfo == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
-        // 2.判断该接口是否可以调用
-        // 创建一个User对象(这里先模拟一下，搞个假数据)
-        com.jjlapi.jjlapiclientsdk.model.User user = new com.jjlapi.jjlapiclientsdk.model.User();
-        // 设置user对象的username属性为"test"
-        user.setUsername("test");
-        // 通过jjlApiClient的getUsernameByPost方法传入user对象，并将返回的username赋值给username变量
-        String username = jjlApiClient.getUserNameByPost(user);
-        if (StringUtils.isBlank(username)) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "接口验证失败");
-        }
         InterfaceInfo interfaceInfo = new InterfaceInfo();
         interfaceInfo.setId(id);
         // 3.修改接口数据库中的状态字段为 1
@@ -296,18 +296,35 @@ public class InterfaceInfoController {
         if (oldInterfaceInfo.getStatus() == InterfaceInfoStatusEnum.OFFLINE.getValue()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "接口已关闭");
         }
+        // 构建请求参数
+        List<InterfaceInfoInvokeRequest.Field> fieldList = interfaceInfoInvokeRequest.getRequestParams();
+        String requestParams = "{}";
+        if (fieldList != null && fieldList.size() > 0) {
+            JsonObject jsonObject = new JsonObject();
+            for (InterfaceInfoInvokeRequest.Field field : fieldList) {
+                jsonObject.addProperty(field.getFieldName(), field.getValue());
+            }
+            requestParams = gson.toJson(jsonObject);
+        }
+        Map<String, Object> params = new Gson().fromJson(requestParams, new TypeToken<Map<String, Object>>() {
+        }.getType());
         // 获取当前登录用户的ak和sk，这样相当于用户自己的这个身份去调用，
         // 也不会担心它刷接口，因为知道是谁刷了这个接口，会比较安全
         User loginUser = userService.getLoginUser(request);
         String accessKey = loginUser.getAccessKey();
         String secretKey = loginUser.getSecretKey();
-        JjlApiClient jjlApiClient = new JjlApiClient(accessKey,secretKey);
-        // 我们只需要进行测试调用，所以我们需要解析传递过来的参数。
-        Gson gson = new Gson();
-        // 将用户请求参数转换为com.jjlapi.jjlapiclientsdk.model.User对象
-        com.jjlapi.jjlapiclientsdk.model.User user = gson.fromJson(userRequestParams, com.jjlapi.jjlapiclientsdk.model.User.class);
-        // 调用JjlApiClient的getUsernameByPost方法，传入用户对象，获取用户名
-        String usernameByPost = jjlApiClient.getUserNameByPost(user);
-        return ResultUtils.success(usernameByPost);
+        try {
+            JjlApiClient jjlApiClient = new JjlApiClient(accessKey, secretKey);
+            CurrencyRequest currencyRequest = new CurrencyRequest();
+            currencyRequest.setMethod(oldInterfaceInfo.getMethod());
+            currencyRequest.setPath(oldInterfaceInfo.getUrl());
+            currencyRequest.setRequestParams(params);
+            ResultResponse response = apiService.request(jjlApiClient, currencyRequest);
+            log.info("返回结果"+response.getData());
+            return ResultUtils.success(response.getData());
+        }catch (Exception e){
+            log.error("请求发送失败");
+            return null;
+        }
     }
 }
