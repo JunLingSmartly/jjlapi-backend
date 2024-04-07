@@ -53,7 +53,32 @@ public class NameController {
 
     @GetMapping("/loveTalk")
     public String randomLoveTalk() {
-        return get("https://api.vvhan.com/api/love");
+        return get("https://api.vvhan.com/api/text/love");
+    }
+
+    @GetMapping("/moyu")
+    public String moyu() {
+        return get("https://api.vvhan.com/api/moyu");
+    }
+
+    @GetMapping("/zhichangrili")
+    public String zhichang() {
+        return get("https://api.vvhan.com/api/zhichang");
+    }
+
+    @GetMapping("/todayxinwen")
+    public String xinwen() {
+        return get("https://api.vvhan.com/api/60s");
+    }
+
+    @GetMapping("/boytouxiang")
+    public String boytouxiang() {
+        return get("https://api.vvhan.com/api/avatar/boy");
+    }
+
+    @GetMapping("/sexy")
+    public String sexy() {
+        return get("https://api.vvhan.com/api/text/sexy");
     }
 
     @GetMapping("/poisonousChickenSoup")

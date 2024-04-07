@@ -30,6 +30,11 @@ public class UserInterfaceInfo implements Serializable {
     private Long interfaceInfoId;
 
     /**
+     * 接口名称
+     */
+    private String interfaceName;
+
+    /**
      * 总调用次数
      */
     private Integer totalNum;

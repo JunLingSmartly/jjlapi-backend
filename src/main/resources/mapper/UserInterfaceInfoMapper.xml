@@ -8,6 +8,7 @@
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="userId" column="userId" jdbcType="BIGINT"/>
             <result property="interfaceInfoId" column="interfaceInfoId" jdbcType="BIGINT"/>
+            <result property="interfaceName" column="interfaceName" jdbcType="VARCHAR"/>
             <result property="totalNum" column="totalNum" jdbcType="INTEGER"/>
             <result property="leftNum" column="leftNum" jdbcType="INTEGER"/>
             <result property="status" column="status" jdbcType="INTEGER"/>
@@ -17,7 +18,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,userId,interfaceInfoId,
+        id,userId,interfaceInfoId,interfaceName,
         totalNum,leftNum,status,
         createTime,updateTime,isDelete
     </sql>
