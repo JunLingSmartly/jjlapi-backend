@@ -19,6 +19,7 @@ spring:
     port: 6379
     host: localhost
     database: 0
+
 server:
   port: 7529
   servlet:
@@ -36,6 +37,9 @@ jjlapi:
   client:
     access-key: jjlapi
     secret-key: abcdefg
+jjl:
+  gateway:
+    host: http://localhost:8090
 dubbo:
   application:
     # 设置应用的名称

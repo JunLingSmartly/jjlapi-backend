@@ -1,6 +1,43 @@
 spring:
+  application:
+    name: jjlapi-backend
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/jjlapi
-    username: root
-    password: 123456
+    url: jdbc:mysql://62.234.67.99:3306/jjlapi
+    username: jjlapi
+    password: 101112
+  redis:
+    database: 1
+    host: 62.234.67.99
+    port: 6379
+    timeout: 5000
+    password: 101112
+dubbo:
+  application:
+    # 设置应用的名称
+    name: dubbo-springboot-demo-provider
+  # 指定使用 Dubbo 协议，且端口设置为 -1，表示随机分配可用端口
+  protocol:
+    name: dubbo
+    port: 22221
+  registry:
+    # 配置注册中心为 Nacos，使用的地址是 nacos://localhost:8848
+    id: nacos-registry
+    address: nacos://localhost:8848?username=nacos&password=nacos
+
+jjl:
+  gateway:
+    host: http://62.234.67.99:8090
+server:
+  port: 7529
+  servlet:
+    context-path: /api
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDelete # 全局逻辑删除的实体字段名(since 3.3.0,配置后可以忽略不配置步骤2)
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
