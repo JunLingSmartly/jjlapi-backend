@@ -1,7 +1,10 @@
 package com.jjlapi.project.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.jjlapi.jjlapiclientsdk.client.JjlApiClient;
 import com.jjlapi.jjlapicommon.model.entity.InterfaceInfo;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
 * @author jinjl
@@ -17,5 +20,13 @@ public interface InterfaceInfoService extends IService<InterfaceInfo> {
      * @param add 是否为创建校验
      */
     void validInterfaceInfo(InterfaceInfo interfaceInfo, boolean add);
+
+    /**
+     * 创建SDK客户端
+     *
+     * @param request 当前会话
+     * @return SDK客户端
+     */
+    JjlApiClient getJjlApiClient(HttpServletRequest request);
 
 }

@@ -14,12 +14,9 @@ import java.util.List;
 public class InterfaceInfoInvokeRequest implements Serializable {
     private static final long serialVersionUID = 1L;
     private Long id;
-    private List<Field> requestParams;
+    /**
+     * 请求参数
+     */
+    private String requestParams;
     private String userRequestParams;
-
-    @Data
-    public static class Field {
-        private String fieldName;
-        private String value;
-    }
 }

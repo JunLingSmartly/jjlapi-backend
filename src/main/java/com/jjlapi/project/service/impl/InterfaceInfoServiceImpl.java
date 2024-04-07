@@ -1,13 +1,19 @@
 package com.jjlapi.project.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.jjlapi.jjlapiclientsdk.client.JjlApiClient;
+import com.jjlapi.jjlapicommon.model.entity.User;
 import com.jjlapi.project.common.ErrorCode;
 import com.jjlapi.project.exception.BusinessException;
 import com.jjlapi.jjlapicommon.model.entity.InterfaceInfo;
 import com.jjlapi.project.service.InterfaceInfoService;
 import com.jjlapi.project.mapper.InterfaceInfoMapper;
+import com.jjlapi.project.service.UserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 /**
 * @author jinjl
@@ -17,6 +23,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, InterfaceInfo>
     implements InterfaceInfoService{
+
+    @Resource
+    private UserService userService;
 
     @Override
     public void validInterfaceInfo(InterfaceInfo interfaceInfo, boolean add) {
@@ -38,6 +47,16 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
         if (StringUtils.isNotBlank(name) && name.length() > 50) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "名称过长");
         }
+    }
+
+    @Override
+    public JjlApiClient getJjlApiClient(HttpServletRequest request) {
+        // 获取当前登录用户
+        User loginUser = userService.getLoginUser(request);
+        String accessKey = loginUser.getAccessKey();
+        String secretKey = loginUser.getSecretKey();
+
+        return new JjlApiClient(accessKey, secretKey);
     }
 
 }

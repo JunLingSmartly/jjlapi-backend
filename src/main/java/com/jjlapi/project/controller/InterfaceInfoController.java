@@ -9,7 +9,9 @@ import com.jjlapi.jjlapiclientsdk.client.JjlApiClient;
 import com.jjlapi.jjlapiclientsdk.model.request.CurrencyRequest;
 import com.jjlapi.jjlapiclientsdk.model.response.ResultResponse;
 import com.jjlapi.jjlapiclientsdk.service.ApiService;
+import com.jjlapi.jjlapicommon.model.entity.UserInterfaceInfo;
 import com.jjlapi.project.common.*;
+import com.jjlapi.project.config.GatewayConfig;
 import com.jjlapi.project.constant.CommonConstant;
 import com.jjlapi.project.exception.BusinessException;
 import com.jjlapi.project.model.dto.interfaceInfo.InterfaceInfoAddRequest;
@@ -20,6 +22,7 @@ import com.jjlapi.jjlapicommon.model.entity.InterfaceInfo;
 import com.jjlapi.jjlapicommon.model.entity.User;
 import com.jjlapi.project.model.enums.InterfaceInfoStatusEnum;
 import com.jjlapi.project.service.InterfaceInfoService;
+import com.jjlapi.project.service.UserInterfaceInfoService;
 import com.jjlapi.project.service.UserService;
 import com.jjlapi.project.annotation.AuthCheck;
 import lombok.extern.slf4j.Slf4j;
@@ -49,9 +52,14 @@ public class InterfaceInfoController {
     private UserService userService;
 
     @Resource
+    private UserInterfaceInfoService userInterfaceInfoService;
+
+    @Resource
     private JjlApiClient jjlApiClient;
     @Resource
     private ApiService apiService;
+    @Resource
+    private GatewayConfig gatewayConfig;
 
     private final Gson gson = new Gson();
 
@@ -182,7 +190,7 @@ public class InterfaceInfoController {
      * @param request
      * @return
      */
-    @GetMapping("/list/page")
+    @GetMapping("/list/page/vo")
     public BaseResponse<Page<InterfaceInfo>> listInterfaceInfoByPage(InterfaceInfoQueryRequest interfaceInfoQueryRequest, HttpServletRequest request) {
         if (interfaceInfoQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -206,6 +214,33 @@ public class InterfaceInfoController {
                 sortOrder.equals(CommonConstant.SORT_ORDER_ASC), sortField);
         Page<InterfaceInfo> interfaceInfoPage = interfaceInfoService.page(new Page<>(current, size), queryWrapper);
         return ResultUtils.success(interfaceInfoPage);
+    }
+
+    /**
+     * 根据 当前用户ID 分页获取列表（封装类）
+     *
+     * @param interfaceInfoQueryRequest 查询条件
+     * @param request                   请求
+     * @return 分页列表
+     */
+    @PostMapping("/my/list/page/vo")
+    public BaseResponse<Page<UserInterfaceInfo>> listInterfaceInfoByUserIdPage(@RequestBody InterfaceInfoQueryRequest interfaceInfoQueryRequest,
+                                                                                 HttpServletRequest request) {
+        if (interfaceInfoQueryRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        UserInterfaceInfo userInterfaceInfo = new UserInterfaceInfo();
+        Long userId = interfaceInfoQueryRequest.getUserId();
+        long current = interfaceInfoQueryRequest.getCurrent();
+        long size = interfaceInfoQueryRequest.getPageSize();
+        // 限制爬虫
+        if (size > 50) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        QueryWrapper<UserInterfaceInfo> queryWrapper = new QueryWrapper<>(userInterfaceInfo);
+        queryWrapper.eq("userId",userId);
+        Page<UserInterfaceInfo> userInterfaceInfoPage = userInterfaceInfoService.page(new Page<>(current, size), queryWrapper);
+        return ResultUtils.success(userInterfaceInfoPage);
     }
 
     // endregion
@@ -284,47 +319,37 @@ public class InterfaceInfoController {
     @PostMapping("/invoke")
     public BaseResponse<Object> invokeInterfaceInfo(@RequestBody InterfaceInfoInvokeRequest interfaceInfoInvokeRequest,
                                                     HttpServletRequest request) {
+        // 校验传参和接口是否存在
         if (interfaceInfoInvokeRequest == null || interfaceInfoInvokeRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        long id = interfaceInfoInvokeRequest.getId();
-        String userRequestParams = interfaceInfoInvokeRequest.getUserRequestParams();
+        Long id = interfaceInfoInvokeRequest.getId();
         InterfaceInfo oldInterfaceInfo = interfaceInfoService.getById(id);
         if (oldInterfaceInfo == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
-        if (oldInterfaceInfo.getStatus() == InterfaceInfoStatusEnum.OFFLINE.getValue()) {
+
+        if (oldInterfaceInfo.getStatus().equals(InterfaceInfoStatusEnum.OFFLINE.getValue())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "接口已关闭");
         }
-        // 构建请求参数
-        List<InterfaceInfoInvokeRequest.Field> fieldList = interfaceInfoInvokeRequest.getRequestParams();
-        String requestParams = "{}";
-        if (fieldList != null && fieldList.size() > 0) {
-            JsonObject jsonObject = new JsonObject();
-            for (InterfaceInfoInvokeRequest.Field field : fieldList) {
-                jsonObject.addProperty(field.getFieldName(), field.getValue());
-            }
-            requestParams = gson.toJson(jsonObject);
-        }
-        Map<String, Object> params = new Gson().fromJson(requestParams, new TypeToken<Map<String, Object>>() {
-        }.getType());
-        // 获取当前登录用户的ak和sk，这样相当于用户自己的这个身份去调用，
-        // 也不会担心它刷接口，因为知道是谁刷了这个接口，会比较安全
-        User loginUser = userService.getLoginUser(request);
-        String accessKey = loginUser.getAccessKey();
-        String secretKey = loginUser.getSecretKey();
+        // 接口请求地址
+        String url = oldInterfaceInfo.getUrl();
+        String method = oldInterfaceInfo.getMethod();
+        String requestParams = interfaceInfoInvokeRequest.getRequestParams();
+        // 获取SDK客户端
+        JjlApiClient jjlApiClient = interfaceInfoService.getJjlApiClient(request);
+        // 设置网关地址
+        jjlApiClient.setGatewayHost(gatewayConfig.getHost());
+        String invokeResult = null;
         try {
-            JjlApiClient jjlApiClient = new JjlApiClient(accessKey, secretKey);
-            CurrencyRequest currencyRequest = new CurrencyRequest();
-            currencyRequest.setMethod(oldInterfaceInfo.getMethod());
-            currencyRequest.setPath(oldInterfaceInfo.getUrl());
-            currencyRequest.setRequestParams(params);
-            ResultResponse response = apiService.request(jjlApiClient, currencyRequest);
-            log.info("返回结果"+response.getData());
-            return ResultUtils.success(response.getData());
-        }catch (Exception e){
-            log.error("请求发送失败");
-            return null;
+            // 执行方法
+            invokeResult = jjlApiClient.invokeInterface(requestParams, url, method);
+            if (StringUtils.isBlank(invokeResult)) {
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "接口数据为空");
+            }
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "接口验证失败");
         }
+        return ResultUtils.success(invokeResult);
     }
 }
