@@ -70,7 +70,6 @@ public abstract class BaseService implements ApiService {
 
     /**
      * 通过请求方法获取http响应
-     *
      * @param request 要求
      * @return {@link HttpResponse}
      * @throws ApiException 业务异常
